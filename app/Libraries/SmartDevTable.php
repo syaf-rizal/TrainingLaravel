@@ -12,47 +12,46 @@ error_reporting(E_ERROR);
 
 class SmartDevTable
 {
-    protected $rows             = [];
-    protected $columns          = [];
-    protected $hiderows         = [];
-    protected $keys             = [];
-    protected $proses           = [];
-    protected $keycari          = [];
-    protected $heading          = [];
-    protected $width            = [];
-    protected $menuWidth        = "";
-    protected $autoHeading      = TRUE;
-    protected $showChk          = TRUE;
-    protected $useWhere         = FALSE;
-    protected $caption          = NULL;
-    protected $template         = NULL;
-    protected $newLine          = "";
-    protected $language         = "ID";
-    protected $emptyCell        = "&nbsp;";
-    protected $action           = "";
-    protected $details          = "";
-    protected $baris            = "10";
-    protected $db               = "";
-    protected $hal              = "AUTO";
-    protected $uri              = "";
-    protected $showSearch       = TRUE;
-    protected $single           = TRUE;
-    protected $dropdown         = TRUE;
-    protected $orderBy          = 1;
-    protected $groupBy          = [];
-    protected $sortBy           = "ASC";
-    protected $postMethod       = FALSE;
-    protected $tbTarget         = "";
-    protected $title            = "";
-    protected $expandRow        = FALSE;
-    protected $addFilter        = FALSE;
-    protected $fieldFilters     = "";
-    protected $dbComboBox       = [];
-    protected $setTrId          = FALSE;
-    protected $attrId           = "";
-    protected $callBack         = "";
-    protected $filedCallBack    = "";
-    protected $divAppend        = FALSE;
+    protected $rows                 = [];
+    protected $columns              = [];
+    protected $hiderows             = [];
+    protected $keys                 = [];
+    protected $proses               = [];
+    protected $keycari              = [];
+    protected $heading              = [];
+    protected $width                = [];
+    protected $menuWidth            = "";
+    protected $autoHeading          = TRUE;
+    protected $showChk              = TRUE;
+    protected $useWhere             = FALSE;
+    protected $caption              = NULL;
+    protected $template             = NULL;
+    protected $newLine              = "";
+    protected $language             = "ID";
+    protected $emptyCell            = "&nbsp;";
+    protected $action               = "";
+    protected $details              = "";
+    protected $baris                = "10";
+    protected $hal                  = "AUTO";
+    protected $showSearch           = TRUE;
+    protected $single               = TRUE;
+    protected $dropdown             = TRUE;
+    protected $orderBy              = 1;
+    protected $groupBy              = [];
+    protected $sortBy               = "ASC";
+    protected $postMethod           = FALSE;
+    protected $tbTarget             = "";
+    protected $title                = "";
+    protected $expandRow            = FALSE;
+    protected $addFilter            = FALSE;
+    protected $fieldFilters         = "";
+    protected $dbComboBox           = [];
+    protected $setTrId              = FALSE;
+    protected $attrId               = "";
+    protected $callBack             = "";
+    protected $filedCallBack        = "";
+    protected $divAppend            = FALSE;
+    protected $bootstrapComponent   = [];
 
     
     public function __constructor() 
@@ -169,7 +168,7 @@ class SmartDevTable
         }
         foreach($row as $a)
         {
-            if(in_array($a, $this->keys)) $this->keys[] = $a;
+            if(!in_array($a, $this->keys)) $this->keys[] = $a;
         }
         return;
     }
@@ -260,6 +259,16 @@ class SmartDevTable
         return;
     }
 
+    public function bootstrapComponent($component)
+    {
+        if(!is_array($component))
+        {
+            return FALSE;
+        }
+        $this->bootstrapComponent = $component;
+        return;
+    }
+
     public function setTemplate($template)
     {
         if(!is_array($template)) return FALSE;
@@ -322,7 +331,6 @@ class SmartDevTable
             {
                 $setHeading = (count($this->heading) == 0 AND $this->autoHeading == FALSE) ? FALSE : TRUE;
                 $this->setFromArray($tableData, $setHeading);
-                //exit("Set From Array");
             }
             else if($tableData != "")
             {
@@ -565,7 +573,7 @@ class SmartDevTable
         $this->compileTemplate();
         
         #Start print table component
-        $out  = '<div class="section">';
+        $out  = '<div class="section" style="width: 98%; margin: 0px auto;">';
         $out .= '   <form id="'. $this->tbTarget.'" action="'. $this->action.'" autocomplete="off">';
 
         #Condition for type searching, single keyword or multiple keywords searching
@@ -573,7 +581,7 @@ class SmartDevTable
         $out .= '   <input type="hidden" id="searchtipe" value="1" '. ($this->postMethod ? 'name="block"' : '') . '>';
         else
         $out .= '   <input type="hidden" id="searchtipe" value="N" '. ($this->postMethod ? 'name="inline"' : '') . '>';
-
+        $out .= '   <input type="hidden" name="_token" value="'. csrf_token() .'">';
         $arrSubHome = array();
         if(count($this->proses) > 0)
         {
@@ -585,7 +593,7 @@ class SmartDevTable
             }
         }
 
-        $out .= '   <div class="row bottom_action" id="bottom_action_'. $this->tbTarget .'">
+        $out .= '   <div class="row bottom_action" id="bottom_action_'. $this->tbTarget .'" style="width: 96.5% !important;">
                         <div class="col s12 m12 l12">
                             <div class="action-left">
                                 <a href="javascript:void(0)" onclick="_hideBottom($(this));" id="'.rand().'" class="btn-floating waves-effect waves-light green darken-4" title="Back or Close" data-body = ".'.$this->tbTarget.'" data-bar="#bottom_action_'.$this->tbTarget.'"><i class="mdi-navigation-arrow-back"></i></a> &nbsp;';
@@ -605,25 +613,27 @@ class SmartDevTable
 
         if(!$request->input('data-post'))
         {
-        $out .=	'   <div class="col s12 m12 l12 navsearch_'.$this->tbTarget.'">
-                        <nav class="blue lighten-1">
-                            <div class="nav-wrapper">
-                                <div class="left col s12 m5 l5">
-                                    <ul>
-                                        <li><i class="mdi-action-view-list"></i></li>
-                                        <li>&nbsp;'.$this->title.'</li>
-                                    </ul>
-                                </div>
-                                <div class="col s12 m7 l7 hide-on-med-and-down">
-                                    <ul class="right">';
-                            if($this->showSearch){
-        $out .=	'                       <li><a href="javascript:void(0);" onClick="$(\'#sSearch_'.$this->tbTarget.'\').toggle(\'slow\')"><i class="mdi-action-find-in-page small icon-demo"></i></a></li>';
+            $out .= '<div class="row">';
+            $out .=	'   <div class="col s12 m12 l12 navsearch_'.$this->tbTarget.'">
+                            <nav class="blue lighten-1">
+                                <div class="nav-wrapper">
+                                    <div class="left col s12 m5 l5">
+                                        <ul>
+                                            <li><i class="mdi-action-view-list"></i></li>
+                                            <li>&nbsp;'.$this->title.'</li>
+                                        </ul>
+                                    </div>
+                                    <div class="col s12 m7 l7 hide-on-med-and-down">
+                                        <ul class="right">';
+                                        if($this->showSearch){
+            $out .=	'                       <li><a href="javascript:void(0);" onClick="$(\'#sSearch_'.$this->tbTarget.'\').toggle(\'slow\')"><i class="mdi-action-find-in-page small icon-demo"></i></a></li>';
                             }
-        $out .=	'                   </ul>
+            $out .=	'                   </ul>
+                                    </div>
                                 </div>
-                            </div>
-                        </nav>
-                    </div>';
+                            </nav>
+                        </div>';
+            $out .= '</div>';
         }
 
         /**
@@ -635,97 +645,99 @@ class SmartDevTable
 				$seltitle = "Pilih Kategori";
 				$contains = "Dengan kata kunci";
 				$titlecontains = "Ketik Kata Kunci &amp; Tekan Enter Untuk Mencari";
-				$lbldropdownbtn = "Pilih Proses";
-				$arrkey = $this->keycari;
-				$out .= '<div class="col s12" id="sSearch_'.$this->tbTarget.'">';
-				/**
-				 * Single Searching
-				 */
-				if($this->single){
-					$out .=					'<div class="row" style="margin-left:10px; margin-top:20px; margin-right:10px; margin-bottom:10px;">';
-					$out .= 					'<div class="col s12">';
-					$out .=						'<div class="row">';
-					$out .= 					'<label class="col s3">'.$lblcategory.'</label>';
-                    $out .= 					'<div class="col s4" id="'.rand().'">';
-                    $out .= 						'<select class="select-dropdown" id="tb_keycari" title="'.$seltitle.'"'.($this->postMethod ? 'name="opt_search" data-postmethod = "'.$this->postMethod.'" data-form = "#'.$this->tbTarget.'" data-action = "'.$this->action.'" data-target =".'.$this->tbTarget.'" data-post = "TRUE"' : '').' >';
-														foreach ($this->keycari as $a => $b){
-															$out .= '<option value="';
-															$out .= $a;
-															$out .= '"';
-															if (count($b)>2){
-																if ($b[2][0]=="STRING"){
-																	$out .= ' cb="'.implode(";", $b[2][1]).'"';
-																}else if ($b[2][0]=="ARRAY"){
-																	$out .= ' cb="'.implode(";", array_keys($b[2][1])).'" urcb="'.implode(";", array_values($b[2][1])).'"';
-																}else if ($b[2][0] == "DATEPICKER"){
-																	$out .= ' picker = "'. $b[2][1][0] . '" data-picker ="'.$b[2][1][1].'" data-format ="'.$b[2][1][2].'"';
-																}else if($b[2][0] == "DATERANGE"){
-																	$out .= ' range = "'. $b[2][1][0] . '" data-picker = "'.$b[2][1][1].'" data-format = "'.$b[2][1][2].'"';
-																}
-															}
-															$out .= '>';
-															$out .= $b[1];
-															$out .= '</option>';
-														}
-					$out .= 							'</select>';
-					$out .=						'</div>';
-					
-					$out .=						'<div class="col s5" id="'.rand().'">';
-					$out .=							'<div class="input-field col s12" style="margin-top:0px;"><input class="form-control input-sm key_search" type="text" id="key_search" placeholder="'.$contains.'" name="key_search"><label for="key_search" class=""></label><i class="mdi-action-pageview prefix"vdata-form = "#'.$this->tbTarget.'" data-action = "'.$this->action.'" data-target =".'.$this->tbTarget.'" data-post = "TRUE" style="cursor:pointer;" id="btn-search-'.rand().'" onclick="postobj($(this));"></i></div>';
-					$out .=						'</div>';
+                $lbldropdownbtn = "Pilih Proses";
+                $arrkey = $this->keycari;
+                $out .= '<div class="row">';
+                    $out .= '<div class="col s12" id="sSearch_'.$this->tbTarget.'" style="display:none;">';
+                    /**
+                     * Single Searching
+                     */
+                    if($this->single){
+                        $out .=					'<div class="row" style="margin-left:10px; margin-top:20px; margin-right:10px; margin-bottom:10px;">';
+                        $out .= 					'<div class="col s12">';
+                        $out .=						'<div class="row">';
+                        $out .= 					'<label class="col s3">'.$lblcategory.'</label>';
+                        $out .= 					'<div class="col s4" id="'.rand().'">';
+                        $out .= 						'<select class="select-dropdown" id="tb_keycari" title="'.$seltitle.'"'.($this->postMethod ? 'name="opt_search" data-postmethod = "'.$this->postMethod.'" data-form = "#'.$this->tbTarget.'" data-action = "'.$this->action.'" data-target =".'.$this->tbTarget.'" data-post = "TRUE"' : '').' >';
+                                                            foreach ($this->keycari as $a => $b){
+                                                                $out .= '<option value="';
+                                                                $out .= $a;
+                                                                $out .= '"';
+                                                                if (count($b)>2){
+                                                                    if ($b[2][0]=="STRING"){
+                                                                        $out .= ' cb="'.implode(";", $b[2][1]).'"';
+                                                                    }else if ($b[2][0]=="ARRAY"){
+                                                                        $out .= ' cb="'.implode(";", array_keys($b[2][1])).'" urcb="'.implode(";", array_values($b[2][1])).'"';
+                                                                    }else if ($b[2][0] == "DATEPICKER"){
+                                                                        $out .= ' picker = "'. $b[2][1][0] . '" data-picker ="'.$b[2][1][1].'" data-format ="'.$b[2][1][2].'"';
+                                                                    }else if($b[2][0] == "DATERANGE"){
+                                                                        $out .= ' range = "'. $b[2][1][0] . '" data-picker = "'.$b[2][1][1].'" data-format = "'.$b[2][1][2].'"';
+                                                                    }
+                                                                }
+                                                                $out .= '>';
+                                                                $out .= $b[1];
+                                                                $out .= '</option>';
+                                                            }
+                        $out .= 							'</select>';
+                        $out .=						'</div>';
+                        
+                        $out .=						'<div class="col s5" id="'.rand().'">';
+                        $out .=							'<div class="input-field col s12" style="margin-top:0px;"><input class="form-control input-sm key_search" type="text" id="key_search" placeholder="'.$contains.'" name="key_search"><label for="key_search" class=""></label><i class="mdi-action-pageview prefix" data-form = "#'.$this->tbTarget.'" data-action = "'.$this->action.'" data-target =".'.$this->tbTarget.'" data-post = "TRUE" style="cursor:pointer;" id="btn-search-'.rand().'" onclick="postobj($(this));"></i></div>';
+                        $out .=						'</div>';
 
-					$out .= 					'</div>';
-					$out .=						'</div>';
-					$out .=					'</div>';
-				}
-				/** 
-				 * End Single Searching 
-				*/
-				
-				/**
-				 * Multiple Searching
-				 */
-				else
-				{
-					$out .= 			    '<div class="row" style="margin-left:10px; margin-top:20px; margin-right:10px; margin-bottom:10px;">';
-						foreach($this->keycari as $a => $b){
-					$out .=						'<div class="col s6">
-														<label id="lbl_'.str_replace(".", "_", $b[0]).'" style="margin-bottom:0px;">'.$b[1].'</label>';
-														if (count($b)>2){
-															if ($b[2][0]=="STRING"){
-																$out .= ' combobox string';
-															}else if ($b[2][0]=="ARRAY"){
-																$out .= '<div class="select fg-line">';
-																$out .= '<select class="form-control keywords" name="opt_search['.$a.']" id="'.rand(pow(10, $counter-1), pow(10, $counter)-1).'" '.((is_array($b[3]) && $this->postmethod) ? 'data-url = "'.$b[3][0].'"' : "").'>';
-																$out .= '<option value=""></option>';
-																foreach ($b[2][1] as $valopt => $selopt) {
-																	$out .= '<option value= "'.$valopt.'">'.$selopt.'</option>';
-																}
-																$out .= '</select>';
-																$out .= '</div>';
-															}else if ($b[2][0] == "DATEPICKER"){
-																$out .= '<input type="text" class="form-control date-pickers keywords" data-date-format="'.$b[2][1][2].'" placeholder="'.$b[2][1][2].'" name="opt_search['.$a.']"" id="'.rand(pow(10, $counter-1), pow(10, $counter)-1).'">';
-															}else if($b[2][0] == "DATERANGE"){
-																$out .= '<div class="input-daterange input-group"><input class="form-control datepickers-range keywords col s6 date-start" type="text" placeholder="Dari" name="opt_search['.$a.'][]" data-date-format="'.$b[2][1][2].'" id="'.rand(pow(10, $counter-1), pow(10, $counter)-1).'"><span class="input-group-addon"><i class="fa fa-chevron-right"></i></span><input class="form-control datepickers-range keywords col s6 date-end" type="text" placeholder="Sampai" name="opt_search['.$a.'][]" data-date-format="'.$b[2][1][2].'" id="'.rand(pow(10, $counter-1), pow(10, $counter)-1).'">
-						  </div>';
-															}
-														}else{
-															$out .= '<input type="text" class="form-control keywords" id="'.$b[0].'" name="opt_search['.$a.']" id="'.rand(pow(10, $counter-1), pow(10, $counter)-1).'">';
-														}
-					$out .=								'</div>';			
-						}
-					$out .= 				'</div>';
-					
-					$out .= '<div class="row" style="margin-left:10px; margin-top:20px; margin-right:10px; margin-bottom:10px;">
-								<div class="btn-demo">
-									<button class="btn waves-effect waves-light blue lighten-1" data-form = "#'.$this->tbTarget.'" data-action = "'.$this->action.'" data-target =".'.$this->tbTarget.'" data-post = "TRUE" style="cursor:pointer;" id="btn-search-'.rand().'" onclick="postobj($(this)); return false;">Cari <i class="mdi-content-send right"></i></button>
-								</div>
-							 </div>';
-				}
-				/**
-				 * End Multiple Searching
-				 */
-				$out .= '</div>';
+                        $out .= 					'</div>';
+                        $out .=						'</div>';
+                        $out .=					'</div>';
+                    }
+                    /** 
+                     * End Single Searching 
+                    */
+                    
+                    /**
+                     * Multiple Searching
+                     */
+                    else
+                    {
+                        $out .= 			    '<div class="row" style="margin-left:10px; margin-top:20px; margin-right:10px; margin-bottom:10px;">';
+                            foreach($this->keycari as $a => $b){
+                        $out .=						'<div class="col s6">
+                                                            <label id="lbl_'.str_replace(".", "_", $b[0]).'" style="margin-bottom:0px;">'.$b[1].'</label>';
+                                                            if (count($b)>2){
+                                                                if ($b[2][0]=="STRING"){
+                                                                    $out .= ' combobox string';
+                                                                }else if ($b[2][0]=="ARRAY"){
+                                                                    $out .= '<div class="select fg-line">';
+                                                                    $out .= '<select class="form-control keywords" name="opt_search['.$a.']" id="'.rand(pow(10, $counter-1), pow(10, $counter)-1).'" '.((is_array($b[3]) && $this->postmethod) ? 'data-url = "'.$b[3][0].'"' : "").'>';
+                                                                    $out .= '<option value=""></option>';
+                                                                    foreach ($b[2][1] as $valopt => $selopt) {
+                                                                        $out .= '<option value= "'.$valopt.'">'.$selopt.'</option>';
+                                                                    }
+                                                                    $out .= '</select>';
+                                                                    $out .= '</div>';
+                                                                }else if ($b[2][0] == "DATEPICKER"){
+                                                                    $out .= '<input type="text" class="form-control date-pickers keywords" data-date-format="'.$b[2][1][2].'" placeholder="'.$b[2][1][2].'" name="opt_search['.$a.']"" id="'.rand(pow(10, $counter-1), pow(10, $counter)-1).'">';
+                                                                }else if($b[2][0] == "DATERANGE"){
+                                                                    $out .= '<div class="input-daterange input-group"><input class="form-control datepickers-range keywords col s6 date-start" type="text" placeholder="Dari" name="opt_search['.$a.'][]" data-date-format="'.$b[2][1][2].'" id="'.rand(pow(10, $counter-1), pow(10, $counter)-1).'"><span class="input-group-addon"><i class="fa fa-chevron-right"></i></span><input class="form-control datepickers-range keywords col s6 date-end" type="text" placeholder="Sampai" name="opt_search['.$a.'][]" data-date-format="'.$b[2][1][2].'" id="'.rand(pow(10, $counter-1), pow(10, $counter)-1).'">
+                            </div>';
+                                                                }
+                                                            }else{
+                                                                $out .= '<input type="text" class="form-control keywords" id="'.$b[0].'" name="opt_search['.$a.']" id="'.rand(pow(10, $counter-1), pow(10, $counter)-1).'">';
+                                                            }
+                        $out .=								'</div>';			
+                            }
+                        $out .= 				'</div>';
+                        
+                        $out .= '<div class="row" style="margin-left:10px; margin-top:20px; margin-right:10px; margin-bottom:10px;">
+                                    <div class="btn-demo">
+                                        <button class="btn waves-effect waves-light blue lighten-1" data-form = "#'.$this->tbTarget.'" data-action = "'.$this->action.'" data-target =".'.$this->tbTarget.'" data-post = "TRUE" style="cursor:pointer;" id="btn-search-'.rand().'" onclick="postobj($(this)); return false;">Cari <i class="mdi-content-send right"></i></button>
+                                    </div>
+                                </div>';
+                    }
+                    /**
+                     * End Multiple Searching
+                     */
+                    $out .= '</div>';
+                $out .= '</div>';
 			}				 
 		}
         /**
@@ -734,7 +746,9 @@ class SmartDevTable
         /**
         * Start parsing record into table html
         */
-        $out .= '   <div class="col s12 '.$this->tbTarget.'">';
+        $out .= '   <div class="row">';
+        $out .= '   </div>';
+        $out .= '   <div class="row '.$this->tbTarget.'">';
         $out .= '   <div style="height:10px;">&nbsp;</div>';
         $out .=     $this->template['table_open'];
         $out .= '   <thead>';
@@ -799,7 +813,7 @@ class SmartDevTable
         
         if (count($this->rows) > 0)
 		{
-			$out .= '<tbody '.($this->postmethod ? 'id="body-'.$this->tbtarget.'"': '').'>';
+			$out .= '<tbody '.($this->postMethod ? 'id="body-'.$this->tbTarget.'"': '').'>';
             $i = 1;
 			foreach($this->rows as $row)
 			{
@@ -810,13 +824,11 @@ class SmartDevTable
                 
                 $keyz = "";
                 $koma = "";
-    
                 foreach ($this->keys as $a)
                 {
                     $keyz .= $koma.$row[$a];
                     $koma = ".";
                 }
-    
                 $name = (fmod($i++, 2)) ? '' : 'alt_';
                 if($i%2==0) $cls = 'alt-row';
                 else $cls = "main-row";
@@ -836,7 +848,7 @@ class SmartDevTable
                 if( $this->showChk )
                 {
                     $sId_Td = 'td_'.$this->tbTarget.'_'.rand();
-                    $out .= '<td><div class="center-align"><input type="checkbox" name="tb_chk[]" data-bar = "#bottom_action_'.$this->tbTarget.'" class="tb_chk" id ="'.$sId_Td.'" value="'.$keyz.'" onchange="_chk($(this));"><label for="'.$sId_Td.'"></label></div></td>';
+                    $out .= '<td style="width:20px !important;"><div class="center-align"><input type="checkbox" name="tb_chk[]" data-bar = "#bottom_action_'.$this->tbTarget.'" class="tb_chk" id ="'.$sId_Td.'" value="'.$keyz.'" onchange="_chk($(this));"><label for="'.$sId_Td.'"></label></div></td>';
                 }
     
                 if ($this->expandRow) $out .= '<td width="8"><a href="javascript:void(0);" id="expand'.$keyz.'" onclick="expand($(this)); return false;" title="Expand baris"><i class="zmdi zmdi-format-valign-center zmdi-hc-fw"></i></a></td>';
@@ -926,17 +938,12 @@ class SmartDevTable
 		$out .= '<input type="hidden" name="tblang" value="'.$this->lang.'">';
         if ($this->details!="") $out .= '<input type="hidden" id="urldtl" value="'.$this->details.'">';
 
-        $out .= '   </div>';
-        /**
-        * End parsing record
-        */
-
-        /**
+         /**
          * Block Pagination
          */
         if (count($this->rows) > 0)
         {
-            $out .= '<div class="row">';
+            
             $out .= '   <div class="col s12">';
             $out .= '       <div class="row">';
             if($this->baris != "ALL")
@@ -955,30 +962,30 @@ class SmartDevTable
                                         if($iTotalRecord>=10)
                                         {
                                             if($this->baris==10)
-                                                $out .= '<li class="active"><a href="javascript:void(0);" class="per" title="Tampilkan 10 Data Per Halaman" '.($this->postMethod || $request->input('data-post') ? " data-post = \"TRUE\" data-form = \"#".$this->tbTarget."\" data-action = \"".$this->actions."\" data-target = \".".$this->tbTarget."\" id =\"per10\" onclick=\"view($(this));\"" : "").'>10</a></li>';
+                                                $out .= '<li class="active"><a href="javascript:void(0);" class="per" title="Tampilkan 10 Data Per Halaman" '.($this->postMethod || $request->input('data-post') ? " data-post = \"TRUE\" data-form = \"#".$this->tbTarget."\" data-action = \"".$this->action."\" data-target = \".".$this->tbTarget."\" id =\"per10\" onclick=\"view($(this));\"" : "").'>10</a></li>';
                                             else
-                                                $out .= '<li class="waves-effect"><a href="javascript:void(0);" class="per" title="Tampilkan 10 Data Per Halaman" '.($this->postMethod || $request->input('data-post') ? " data-post = \"TRUE\" data-form = \"#".$this->tbTarget."\" data-action = \"".$this->actions."\" data-target = \".".$this->tbTarget."\" id =\"per10\" onclick=\"view($(this));\"" : "").'>10</a></li>';
+                                                $out .= '<li class="waves-effect"><a href="javascript:void(0);" class="per" title="Tampilkan 10 Data Per Halaman" '.($this->postMethod || $request->input('data-post') ? " data-post = \"TRUE\" data-form = \"#".$this->tbTarget."\" data-action = \"".$this->action."\" data-target = \".".$this->tbTarget."\" id =\"per10\" onclick=\"view($(this));\"" : "").'>10</a></li>';
                                         }
                                         if($iTotalRecord>=20)
                                         {
                                             if($this->baris==20)
-                                                $out .= '<li class="active"><a href="javascript:void(0);" class="per" title="Tampilkan 20 Data Per Halaman" '.($this->postMethod || $request->input('data-post') ? " data-post = \"TRUE\" data-form = \"#".$this->tbTarget."\" data-action = \"".$this->actions."\" data-target = \".".$this->tbTarget."\" id =\"per20\" onclick=\"view($(this));\"" : "").'>20</a></li>';
+                                                $out .= '<li class="active"><a href="javascript:void(0);" class="per" title="Tampilkan 20 Data Per Halaman" '.($this->postMethod || $request->input('data-post') ? " data-post = \"TRUE\" data-form = \"#".$this->tbTarget."\" data-action = \"".$this->action."\" data-target = \".".$this->tbTarget."\" id =\"per20\" onclick=\"view($(this));\"" : "").'>20</a></li>';
                                             else
-                                                $out .= '<li class="waves-effect"><a href="javascript:void(0);" class="per" title="Tampilkan 20 Data Per Halaman" '.($this->postMethod || $request->input('data-post') ? " data-post = \"TRUE\" data-form = \"#".$this->tbTarget."\" data-action = \"".$this->actions."\" data-target = \".".$this->tbTarget."\" id =\"per20\" onclick=\"view($(this));\"" : "").'>20</a></li>';
+                                                $out .= '<li class="waves-effect"><a href="javascript:void(0);" class="per" title="Tampilkan 20 Data Per Halaman" '.($this->postMethod || $request->input('data-post') ? " data-post = \"TRUE\" data-form = \"#".$this->tbTarget."\" data-action = \"".$this->action."\" data-target = \".".$this->tbTarget."\" id =\"per20\" onclick=\"view($(this));\"" : "").'>20</a></li>';
                                         }
                                         if($iTotalRecord>=50)
                                         {
                                             if($this->baris==50)
-                                                $out .= '<li class="active"><a href="javascript:void(0);" class="per" title="Tampilkan 50 Data Per Halaman" '.($this->postMethod || $request->input('data-post') ? " data-post = \"TRUE\" data-form = \"#".$this->tbTarget."\" data-action = \"".$this->actions."\" data-target = \".".$this->tbTarget."\" id =\"per50\" onclick=\"view($(this));\"" : "").'>50</a></li>';
+                                                $out .= '<li class="active"><a href="javascript:void(0);" class="per" title="Tampilkan 50 Data Per Halaman" '.($this->postMethod || $request->input('data-post') ? " data-post = \"TRUE\" data-form = \"#".$this->tbTarget."\" data-action = \"".$this->action."\" data-target = \".".$this->tbTarget."\" id =\"per50\" onclick=\"view($(this));\"" : "").'>50</a></li>';
                                             else
-                                                $out .= '<li class="waves-effect"><a href="javascript:void(0);" class="per" title="Tampilkan 50 Data Per Halaman" '.($this->postMethod || $request->input('data-post') ? " data-post = \"TRUE\" data-form = \"#".$this->tbTarget."\" data-action = \"".$this->actions."\" data-target = \".".$this->tbTarget."\" id =\"per50\" onclick=\"view($(this));\"" : "").'>50</a></li>';
+                                                $out .= '<li class="waves-effect"><a href="javascript:void(0);" class="per" title="Tampilkan 50 Data Per Halaman" '.($this->postMethod || $request->input('data-post') ? " data-post = \"TRUE\" data-form = \"#".$this->tbTarget."\" data-action = \"".$this->action."\" data-target = \".".$this->tbTarget."\" id =\"per50\" onclick=\"view($(this));\"" : "").'>50</a></li>';
                                         }
                                         if($iTotalRecord>=100)
                                         {
                                             if($this->baris==100)
-                                                $out .= '<li class="active"><a href="javascript:void(0);" class="per" title="Tampilkan 100 Data Per Halaman" '.($this->postMethod || $request->input('data-post') ? " data-post = \"TRUE\" data-form = \"#".$this->tbTarget."\" data-action = \"".$this->actions."\" data-target = \".".$this->tbTarget."\" id =\"per100\" onclick=\"view($(this));\"" : "").'>100</a></li>';
+                                                $out .= '<li class="active"><a href="javascript:void(0);" class="per" title="Tampilkan 100 Data Per Halaman" '.($this->postMethod || $request->input('data-post') ? " data-post = \"TRUE\" data-form = \"#".$this->tbTarget."\" data-action = \"".$this->action."\" data-target = \".".$this->tbTarget."\" id =\"per100\" onclick=\"view($(this));\"" : "").'>100</a></li>';
                                             else
-                                                $out .= '<li class="waves-effect"><a href="javascript:void(0);" class="per" title="Tampilkan 100 Data Per Halaman" '.($this->postMethod || $request->input('data-post') ? " data-post = \"TRUE\" data-form = \"#".$this->tbTarget."\" data-action = \"".$this->actions."\" data-target = \".".$this->tbTarget."\" id =\"per100\" onclick=\"view($(this));\"" : "").'>100</a></li>';
+                                                $out .= '<li class="waves-effect"><a href="javascript:void(0);" class="per" title="Tampilkan 100 Data Per Halaman" '.($this->postMethod || $request->input('data-post') ? " data-post = \"TRUE\" data-form = \"#".$this->tbTarget."\" data-action = \"".$this->action."\" data-target = \".".$this->tbTarget."\" id =\"per100\" onclick=\"view($(this));\"" : "").'>100</a></li>';
                                         }
                                     if($iTotalRecord!=10 || $iTotalRecord!=20 || $iTotalRecord!=50 || $iTotalRecord!=100)
                                     {
@@ -986,11 +993,11 @@ class SmartDevTable
                                         {
                                             if($this->baris==$iTotalRecord)
                                             {
-                                                $out .= '<li class="active"><a href="javascript:void(0);" class="current per" title="Tampilkan '.$iTotalRecord.' Data Per Halaman" '.($this->postMethod || $request->input('data-post') ? " data-post = \"TRUE\" data-form = \"#".$this->tbTarget."\" data-action = \"".$this->actions."\" data-target = \".".$this->tbTarget."\" id =\"per".$iTotalRecord."\" onclick=\"view($(this));\"" : "").'>'.$iTotalRecord.'</a></li>';
+                                                $out .= '<li class="active"><a href="javascript:void(0);" class="current per" title="Tampilkan '.$iTotalRecord.' Data Per Halaman" '.($this->postMethod || $request->input('data-post') ? " data-post = \"TRUE\" data-form = \"#".$this->tbTarget."\" data-action = \"".$this->action."\" data-target = \".".$this->tbTarget."\" id =\"per".$iTotalRecord."\" onclick=\"view($(this));\"" : "").'>'.$iTotalRecord.'</a></li>';
                                             }
                                             else
                                             {
-                                                $out .= '<li class="waves-effect"><a href="javascript:void(0);" class="per" title="Tampilkan '.$iTotalRecord.' Data Per Halaman" '.($this->postMethod || $request->input('data-post') ? " data-post = \"TRUE\" data-form = \"#".$this->tbTarget."\" data-action = \"".$this->actions."\" data-target = \".".$this->tbTarget."\" id =\"per".$iTotalRecord."\" onclick=\"view($(this));\"" : "").'>'.$iTotalRecord.'</a></li>';
+                                                $out .= '<li class="waves-effect"><a href="javascript:void(0);" class="per" title="Tampilkan '.$iTotalRecord.' Data Per Halaman" '.($this->postMethod || $request->input('data-post') ? " data-post = \"TRUE\" data-form = \"#".$this->tbTarget."\" data-action = \"".$this->action."\" data-target = \".".$this->tbTarget."\" id =\"per".$iTotalRecord."\" onclick=\"view($(this));\"" : "").'>'.$iTotalRecord.'</a></li>';
                                             }
                                         }
                                         else
@@ -1052,12 +1059,16 @@ class SmartDevTable
             }
             $out .= '       </div>';
             $out .= '   </div>';
-            $out .= '</div>';
         }
 
         /**
          * End Pagination
          */
+
+        $out .= '   </div>';
+        /**
+        * End parsing record
+        */
 
         $out .= '   </div>';
         #End Form
@@ -1098,7 +1109,7 @@ class SmartDevTable
         if(count($this->heading) == 0)
         {
             empty($this->heading);
-            if($this->showChk) $this->heading[] = '<input type="checkbox" class="filled-in"'.($this->postMethod ? 'class="chkall'.$this->tbTarget.'" onchange="_chkall($(this));" id ="chkall'.$this->tbTarget.'" data-bar = "#bottom_action_'.$this->tbTarget.'" data-body = "#body-'.$this->tbTarget.'" ': 'id="tb_chkall').'><label for="'.($this->postMethod ? 'chkall'.$this->tbTarget : 'tb_chkall').'"></label>';
+            if($this->showChk) $this->heading[] = '<div class="center-align"><input type="checkbox" class="filled-in"'.($this->postMethod ? 'class="chkall'.$this->tbTarget.'" onchange="_chkall($(this));" id ="chkall'.$this->tbTarget.'" data-bar = "#bottom_action_'.$this->tbTarget.'" data-body = "#body-'.$this->tbTarget.'" ': 'id="tb_chkall').'><label for="'.($this->postMethod ? 'chkall'.$this->tbTarget : 'tb_chkall').'"></label></div>';
             if($this->expandRow) $this->heading[] = '&nbsp';
             if($this->list_fields($query) != FALSE)
             {
