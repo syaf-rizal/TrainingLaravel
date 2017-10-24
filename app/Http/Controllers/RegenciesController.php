@@ -3,49 +3,71 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Libraries\SmartDevTable;
+use rndediiv2\SmartDevTable\Facade\SmartDevTable;
+use App\Libraries\SmartDevMain;
 
 class RegenciesController extends Controller
 {
     public function listRegencies(Request $request)
     {
-        $smartDevTable = new SmartDevTable();
         $sqlRegencies = "SELECT a.id, b.name as provinces, a.name as regencies
-                         FROM regencies a LEFT JOIN provinces b
-                         ON a.province_id = b.id";
-        $smartDevTable->columns([
+        FROM regencies a LEFT JOIN provinces b
+        ON a.province_id = b.id";
+        SmartDevTable::keys(['id']);
+        SmartDevTable::hiddens(['id']);
+        SmartDevTable::columns([
             "a.id","b.name","a.name"
         ]);
-        $smartDevTable->width([
+        SmartDevTable::orderBy(1);
+        SmartDevTable::sortBy("ASC");
+        SmartDevTable::width([
             'provinces' => 150,
             'regencies' => 250
         ]);
-        $smartDevTable->search([
+        SmartDevTable::showSearch(TRUE);
+        SmartDevTable::showChk(TRUE);
+        SmartDevTable::single(TRUE);
+        SmartDevTable::search([
             ['b.name', 'Provinces'],
             ['a.name', 'Regencies']
         ]);
-        $smartDevTable->keys(['id']);
-        $smartDevTable->hiddens(['id']);
-        $smartDevTable->menu([
+        SmartDevTable::menu([
             'Preview' => [
-                'GET', 'localhost:8000','1', 'mdi-action-open-in-new', 'blue darken-1'
+                'GET', url('regencies'),'1', 'mdi-action-open-in-new', 'blue darken-1'
             ]
         ]);
-        $smartDevTable->action('localhost:8000');
-        $smartDevTable->postMethod(TRUE);
-        $smartDevTable->orderBy(1);
-        $smartDevTable->sortBy("ASC");
-        $smartDevTable->showSearch(TRUE);
-        $smartDevTable->showChk(TRUE);
-        $smartDevTable->single(TRUE);
-        $smartDevTable->expandRow(TRUE);
-        $smartDevTable->tbTarget("listRegencies");
-        $smartDevTable->title("Data Kabupaten Indonesia");
-        return $smartDevTable->generate($sqlRegencies, $request);
+        SmartDevTable::action(url('regencies'));
+        SmartDevTable::postMethod(TRUE);
+        SmartDevTable::tbTarget("listRegencies");
+        SmartDevTable::expandRow(TRUE);
+        SmartDevTable::title("Data Kabupaten Indonesia");
 
-        // $data = [
-        //     'judul' => 'Training Laravel'
-        // ];
-        // return view('regencies', $data);
+        SmartDevTable::bootstrapComponent([
+            'classLarge12' => 'l',
+            'classMiddle12' => 'm',
+            'classSmall12'  => 's'
+        ]);
+
+        $smartTable = SmartDevTable::generate($sqlRegencies, $request);
+
+        if($request->input('data-post'))
+        {   
+            return $smartTable;
+        }
+        else
+        {
+            $data = [
+                'smartTable' => $smartTable
+            ];
+            return view('regencies', $data);
+        }
+    }
+
+    public function generatorUuid()
+    {
+        $smartDevMain = new SmartDevMain();
+        $arrData['objProvince'] = $smartDevMain->setSelectCombo("SELECT id, name FROM provinces", "id", "name", TRUE);
+        $arrData['objSelectedProvince'] = 11;
+        return view('regencies-form', $arrData);
     }
 }

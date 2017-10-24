@@ -16,3 +16,5 @@ Route::get('/', function () {
 });
 
 Route::get('/regencies', 'RegenciesController@listRegencies');
+Route::post('/regencies', 'RegenciesController@listRegencies');
+Route::get('/generator', 'RegenciesController@generatorUuid');
